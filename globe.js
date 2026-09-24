@@ -7,10 +7,10 @@
     }
 
     const AU_SCALE = 280;
-    const EARTH_RADIUS = 8;
-    const MOON_RADIUS = 2;
-    const MOON_ORBIT_RADIUS = 22;
-    const SUN_RADIUS = 36;
+    const EARTH_RADIUS = 18;
+    const MOON_RADIUS = 4;
+    const MOON_ORBIT_RADIUS = 36;
+    const SUN_RADIUS = 42;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 5000);
@@ -179,8 +179,8 @@
       }
 
       const earthDistance = earthPosition.length();
-      const cameraSide = earthDistance * 0.72;
-      const cameraHeight = earthDistance * 0.28;
+      const cameraSide = earthDistance * 0.58;
+      const cameraHeight = earthDistance * 0.22;
 
       cameraDirection
         .copy(sideDirection)

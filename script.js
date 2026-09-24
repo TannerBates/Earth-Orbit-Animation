@@ -70,7 +70,8 @@
   }
 
   function computeAxialTilt(earthAxis) {
-    return 90 - Math.abs(earthAxis.dec);
+    const northEcliptic = Astronomy.Ecliptic(earthAxis.north);
+    return 90 - Math.abs(northEcliptic.elat);
   }
 
   function buildOrbitPath(referenceDate) {
@@ -178,9 +179,11 @@
 
     if (viewClassicEl) {
       viewClassicEl.hidden = currentModel !== 'classic';
+      viewClassicEl.style.display = currentModel === 'classic' ? 'block' : 'none';
     }
     if (globeCanvasEl) {
       globeCanvasEl.hidden = currentModel !== 'globe';
+      globeCanvasEl.style.display = currentModel === 'globe' ? 'block' : 'none';
     }
 
     if (currentModel === 'globe') {

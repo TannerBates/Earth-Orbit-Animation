@@ -87,6 +87,11 @@ html, body {
     display: block;
 }
 
+#globe-canvas[hidden],
+#view-classic[hidden] {
+    display: none !important;
+}
+
 #orbit-path {
     position: absolute;
     top: 50%;
