@@ -44,7 +44,8 @@
   }
 
   let simulationTime = new Date();
-  let lastFrameTime = performance.now();
+  let timeAnchorWallMs = Date.now();
+  let timeAnchorSimMs = simulationTime.getTime();
   let isFirstFrame = true;
 
   const centralTimeFormatter = new Intl.DateTimeFormat('en-US', {
@@ -241,23 +242,27 @@
 
   function syncToRealTime() {
     simulationTime = new Date();
-    lastFrameTime = performance.now();
+    timeAnchorWallMs = Date.now();
+    timeAnchorSimMs = simulationTime.getTime();
+  }
+
+  function reanchorSimulationTime() {
+    timeAnchorWallMs = Date.now();
+    timeAnchorSimMs = simulationTime.getTime();
   }
 
   function updateSimulation() {
-    const now = performance.now();
     const speed = Number(timeSpeedInput.value);
 
     if (isFirstFrame) {
       syncToRealTime();
       isFirstFrame = false;
     } else if (speed === 1) {
-      simulationTime = new Date();
-      lastFrameTime = now;
+      syncToRealTime();
     } else {
-      const elapsedMs = Math.min(now - lastFrameTime, 1000);
-      lastFrameTime = now;
-      simulationTime = new Date(simulationTime.getTime() + elapsedMs * speed);
+      simulationTime = new Date(
+        timeAnchorSimMs + (Date.now() - timeAnchorWallMs) * speed
+      );
     }
 
     const state = computeState();
@@ -289,6 +294,7 @@
 
   timeSpeedInput.addEventListener('input', function () {
     const speed = Number(timeSpeedInput.value);
+    reanchorSimulationTime();
     if (speed === 1) {
       syncToRealTime();
     }

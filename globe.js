@@ -138,6 +138,7 @@
     const worldMatrix = new THREE.Matrix4();
     const rotationMatrix = new THREE.Matrix4();
     const TEXTURE_LON_OFFSET_DEG = 0;
+    const lastTarget = new THREE.Vector3();
     let cameraInitialized = false;
 
     const controls = new THREE.OrbitControls(camera, canvas);
@@ -268,10 +269,15 @@
 
       if (!cameraInitialized) {
         setDefaultCamera();
+        lastTarget.copy(controls.target);
         cameraInitialized = true;
+      } else {
+        camera.position.x += midpoint.x - lastTarget.x;
+        camera.position.y += midpoint.y - lastTarget.y;
+        camera.position.z += midpoint.z - lastTarget.z;
+        controls.target.copy(midpoint);
+        lastTarget.copy(midpoint);
       }
-
-      controls.target.copy(midpoint);
 
       sunLight.position.copy(sunPosition);
       sunCore.rotation.y += 0.00035;
@@ -295,6 +301,7 @@
 
     function resetView() {
       setDefaultCamera();
+      lastTarget.copy(controls.target);
     }
 
     function dispose() {
