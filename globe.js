@@ -196,13 +196,12 @@
     }
 
     function setLocalDirFromLatLon(latDeg, lonDeg, target) {
-      const lat = THREE.MathUtils.degToRad(latDeg);
-      const lon = THREE.MathUtils.degToRad(lonDeg);
-      const cosLat = Math.cos(lat);
+      const phi = (90 - latDeg) * Math.PI / 180;
+      const theta = (lonDeg + 180) * Math.PI / 180;
       target.set(
-        cosLat * Math.sin(lon),
-        Math.sin(lat),
-        cosLat * Math.cos(lon)
+        -Math.sin(phi) * Math.cos(theta),
+        Math.cos(phi),
+        Math.sin(phi) * Math.sin(theta)
       ).normalize();
     }
 

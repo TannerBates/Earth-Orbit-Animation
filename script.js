@@ -131,7 +131,7 @@
     const sunGeo = Astronomy.GeoVector(Astronomy.Body.Sun, simulationTime, true);
     const sunEquator = Astronomy.EquatorFromVector(sunGeo);
     const sunEcliptic = Astronomy.Ecliptic(sunGeo);
-    let subsolarLon = siderealHours * 15 - sunEquator.ra * 15;
+    let subsolarLon = sunEquator.ra * 15 - siderealHours * 15;
     subsolarLon = ((subsolarLon % 360) + 360) % 360;
 
     const earthX = earthEcliptic.vec.x * AU_SCALE;
