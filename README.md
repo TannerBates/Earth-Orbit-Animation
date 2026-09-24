@@ -44,4 +44,5 @@ Or open in a private/incognito window.
 | `lib/astronomy.browser.min.js` | Astronomy Engine (bundled locally, no CDN needed) |
 | `lib/three.min.js` | Three.js for the 3D globe |
 | `images/earth_globe.jpg` | NASA Blue Marble texture for the globe |
+| `images/sun_globe.jpg` | Solar System Scope sun surface texture (CC BY 4.0) |
 | `style.css` | Layout and styling |

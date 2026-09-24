@@ -21,36 +21,48 @@
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    scene.add(new THREE.AmbientLight(0x404060, 0.45));
+    scene.add(new THREE.AmbientLight(0x303050, 0.35));
 
-    const sunLight = new THREE.PointLight(0xfff4dd, 2.4, 0, 0);
+    const sunLight = new THREE.PointLight(0xfff0dd, 3.2, 0, 0);
     scene.add(sunLight);
 
-    const sunMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(SUN_RADIUS, 32, 32),
-      new THREE.MeshBasicMaterial({ color: 0xffb347 })
-    );
-    scene.add(sunMesh);
+    const sunTexture = new THREE.TextureLoader().load('images/sun_globe.jpg');
+    sunTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
-    const sunGlow = new THREE.Mesh(
-      new THREE.SphereGeometry(SUN_RADIUS * 2.2, 32, 32),
+    const sunGroup = new THREE.Group();
+    const sunCore = new THREE.Mesh(
+      new THREE.SphereGeometry(SUN_RADIUS, 64, 64),
       new THREE.MeshBasicMaterial({
-        color: 0xffaa00,
-        transparent: true,
-        opacity: 0.22
+        map: sunTexture,
+        color: 0xffffff
       })
     );
-    scene.add(sunGlow);
+    sunGroup.add(sunCore);
 
-    const sunCorona = new THREE.Mesh(
-      new THREE.SphereGeometry(SUN_RADIUS * 3.5, 32, 32),
-      new THREE.MeshBasicMaterial({
-        color: 0xff6600,
-        transparent: true,
-        opacity: 0.08
-      })
-    );
-    scene.add(sunCorona);
+    const sunGlowLayers = [
+      { scale: 1.12, color: 0xffcc66, opacity: 0.45 },
+      { scale: 1.28, color: 0xffaa33, opacity: 0.28 },
+      { scale: 1.55, color: 0xff7722, opacity: 0.16 },
+      { scale: 2.0, color: 0xff4400, opacity: 0.08 },
+      { scale: 2.8, color: 0xff2200, opacity: 0.04 }
+    ];
+
+    sunGlowLayers.forEach(function (layer) {
+      const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(SUN_RADIUS * layer.scale, 32, 32),
+        new THREE.MeshBasicMaterial({
+          color: layer.color,
+          transparent: true,
+          opacity: layer.opacity,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.BackSide
+        })
+      );
+      sunGroup.add(glow);
+    });
+
+    scene.add(sunGroup);
 
     const earthTexture = new THREE.TextureLoader().load('images/earth_globe.jpg');
     earthTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -191,6 +203,7 @@
       camera.lookAt(midpoint);
 
       sunLight.position.copy(sunPosition);
+      sunCore.rotation.y += 0.00035;
     }
 
     function render() {
@@ -211,6 +224,7 @@
     function dispose() {
       renderer.dispose();
       earthTexture.dispose();
+      sunTexture.dispose();
       orbitLine.geometry.dispose();
     }
 
