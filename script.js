@@ -130,6 +130,7 @@
     const moon = Astronomy.EclipticGeoMoon(simulationTime);
     const sunGeo = Astronomy.GeoVector(Astronomy.Body.Sun, simulationTime, true);
     const sunEquator = Astronomy.EquatorFromVector(sunGeo);
+    const sunEcliptic = Astronomy.Ecliptic(sunGeo);
     let subsolarLon = siderealHours * 15 - sunEquator.ra * 15;
     subsolarLon = ((subsolarLon % 360) + 360) % 360;
 
@@ -160,7 +161,10 @@
       axialTilt: axialTilt,
       subsolarLat: sunEquator.dec,
       subsolarLon: subsolarLon,
-      sunFacingDeg: sunFacingDeg
+      sunFacingDeg: sunFacingDeg,
+      toSunX: sunEcliptic.vec.x,
+      toSunY: -sunEcliptic.vec.y,
+      toSunZ: sunEcliptic.vec.z
     };
   }
 

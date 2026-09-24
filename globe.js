@@ -128,9 +128,16 @@
     const worldUp = new THREE.Vector3(0, 1, 0);
     const cameraDirection = new THREE.Vector3();
     const defaultUp = new THREE.Vector3(0, 1, 0);
-    const baseOrientation = new THREE.Quaternion();
-    const spinQuaternion = new THREE.Quaternion();
-    const TEXTURE_LON_OFFSET_DEG = -90;
+    const toSunDirection = new THREE.Vector3();
+    const subsolarLocal = new THREE.Vector3();
+    const localEast = new THREE.Vector3();
+    const localRef = new THREE.Vector3();
+    const worldEast = new THREE.Vector3();
+    const worldRef = new THREE.Vector3();
+    const localMatrix = new THREE.Matrix4();
+    const worldMatrix = new THREE.Matrix4();
+    const rotationMatrix = new THREE.Matrix4();
+    const TEXTURE_LON_OFFSET_DEG = 0;
     let cameraInitialized = false;
 
     const controls = new THREE.OrbitControls(camera, canvas);
@@ -188,7 +195,18 @@
       controls.update();
     }
 
-    function updateOrientation(earthAxis) {
+    function setLocalDirFromLatLon(latDeg, lonDeg, target) {
+      const lat = THREE.MathUtils.degToRad(latDeg);
+      const lon = THREE.MathUtils.degToRad(lonDeg);
+      const cosLat = Math.cos(lat);
+      target.set(
+        cosLat * Math.sin(lon),
+        Math.sin(lat),
+        cosLat * Math.cos(lon)
+      ).normalize();
+    }
+
+    function updateOrientation(earthAxis, subsolarLat, subsolarLon, toSun) {
       const northEcliptic = Astronomy.Ecliptic(earthAxis.north);
       northPole.set(
         northEcliptic.vec.x,
@@ -196,22 +214,48 @@
         northEcliptic.vec.z
       ).normalize();
 
-      const spinDeg = ((earthAxis.spin % 360) + 360) % 360 + TEXTURE_LON_OFFSET_DEG;
+      toSunDirection.copy(toSun).normalize();
 
-      spinQuaternion.setFromAxisAngle(
-        defaultUp,
-        THREE.MathUtils.degToRad(spinDeg)
+      setLocalDirFromLatLon(
+        subsolarLat,
+        subsolarLon + TEXTURE_LON_OFFSET_DEG,
+        subsolarLocal
       );
-      baseOrientation.setFromUnitVectors(defaultUp, northPole);
 
-      earthMesh.quaternion.copy(baseOrientation).multiply(spinQuaternion);
+      localEast.crossVectors(defaultUp, subsolarLocal);
+      if (localEast.lengthSq() < 1e-8) {
+        localEast.set(1, 0, 0);
+      } else {
+        localEast.normalize();
+      }
+      localRef.crossVectors(localEast, defaultUp).normalize();
+
+      worldEast.crossVectors(northPole, toSunDirection);
+      if (worldEast.lengthSq() < 1e-8) {
+        worldEast.set(1, 0, 0);
+      } else {
+        worldEast.normalize();
+      }
+      worldRef.crossVectors(worldEast, northPole).normalize();
+
+      localMatrix.makeBasis(localEast, defaultUp, localRef);
+      worldMatrix.makeBasis(worldEast, northPole, worldRef);
+      rotationMatrix.multiplyMatrices(worldMatrix, localMatrix.clone().invert());
+
+      earthMesh.quaternion.setFromRotationMatrix(rotationMatrix);
     }
 
     function update(state) {
       earthPosition.copy(eclipticToScene(state.earthEcliptic.vec));
       earthMesh.position.copy(earthPosition);
 
-      updateOrientation(state.earthAxis);
+      toSunDirection.set(state.toSunX, state.toSunY, state.toSunZ);
+      updateOrientation(
+        state.earthAxis,
+        state.subsolarLat,
+        state.subsolarLon,
+        toSunDirection
+      );
 
       const moonLonRad = state.moon.lon * Math.PI / 180;
       moonOffset.set(
