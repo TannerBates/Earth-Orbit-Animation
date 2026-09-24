@@ -1,10 +1,14 @@
 (function () {
   'use strict';
 
+  const VERSION = 2;
+  window.__orbitVersion = VERSION;
+
   const AU_IN_KM = 149597870.7;
   const AU_SCALE = 280;
   const MOON_DISPLAY_SCALE = 5000;
 
+  const errorBannerEl = document.getElementById('error-banner');
   const earthWrapEl = document.getElementById('earth-wrap');
   const earthEl = document.getElementById('earth');
   const moonEl = document.getElementById('moon');
@@ -13,8 +17,27 @@
   const timeSpeedInput = document.getElementById('time-speed');
   const speedLabelEl = document.getElementById('speed-label');
 
+  function showError(message) {
+    if (!errorBannerEl) {
+      return;
+    }
+    errorBannerEl.hidden = false;
+    errorBannerEl.textContent = 'Error: ' + message;
+  }
+
+  if (typeof Astronomy === 'undefined') {
+    showError('Astronomy Engine failed to load. Make sure lib/astronomy.browser.min.js is present.');
+    return;
+  }
+
+  if (!earthWrapEl || !earthEl || !moonEl || !infoEl || !timeSpeedInput || !speedLabelEl) {
+    showError('Page structure is outdated. Hard-refresh or re-download orbit.html from main.');
+    return;
+  }
+
   let simulationTime = new Date();
   let lastFrameTime = performance.now();
+  let animationStarted = false;
 
   function formatUtc(date) {
     return date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
@@ -110,7 +133,7 @@
       'translate(calc(-50% + ' + moonX + 'px), calc(-50% + ' + moonY + 'px))';
 
     infoEl.innerHTML =
-      '<h2>Earth–Sun System</h2>' +
+      '<h2>Earth–Sun System (v' + VERSION + ')</h2>' +
       '<dl>' +
       '<dt>Simulation time</dt><dd>' + formatUtc(simulationTime) + '</dd>' +
       '<dt>Heliocentric ecliptic longitude</dt><dd>' + formatNumber(earthEcliptic.elon, 4) + '°</dd>' +
@@ -123,12 +146,15 @@
       '<dt>Moon distance</dt><dd>' + formatNumber(moon.dist * AU_IN_KM, 1) + ' km</dd>' +
       '</dl>' +
       '<p class="note">Positions from Astronomy Engine (VSOP87 / IAU rotation models). Moon orbit is scaled up for visibility.</p>';
-
-    speedLabelEl.textContent = speedToLabel(speed);
   }
 
   function frame() {
-    updateSimulation();
+    try {
+      updateSimulation();
+    } catch (err) {
+      showError(err.message || String(err));
+      return;
+    }
     requestAnimationFrame(frame);
   }
 
@@ -136,7 +162,15 @@
     speedLabelEl.textContent = speedToLabel(Number(timeSpeedInput.value));
   });
 
-  renderOrbitPath(buildOrbitPath(simulationTime));
   speedLabelEl.textContent = speedToLabel(Number(timeSpeedInput.value));
+  animationStarted = true;
   requestAnimationFrame(frame);
+
+  window.setTimeout(function () {
+    try {
+      renderOrbitPath(buildOrbitPath(simulationTime));
+    } catch (err) {
+      showError('Could not draw orbit path: ' + (err.message || String(err)));
+    }
+  }, 0);
 })();

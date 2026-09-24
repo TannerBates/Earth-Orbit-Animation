@@ -27,6 +27,37 @@ html, body {
     font-family: system-ui, -apple-system, sans-serif;
 }
 
+#version-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 80, 160, 0.9);
+    color: #fff;
+    font-size: 0.8125rem;
+    text-align: center;
+}
+
+#error-banner {
+    position: fixed;
+    top: 2.5rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 20;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background: rgba(160, 0, 0, 0.92);
+    color: #fff;
+    font-size: 0.875rem;
+}
+
+#info-panel .loading {
+    margin: 0;
+    color: #bdbdbd;
+}
+
 #stars {
     position: fixed;
     inset: 0;

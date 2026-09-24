@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Earth Orbit — Real Coordinates</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body id="universe">
+    <div id="version-banner">Real coordinates mode — if you still see the old CSS-only animation, hard-refresh (Ctrl+Shift+R)</div>
+    <div id="error-banner" hidden></div>
+
     <div id="stars"></div>
 
     <div id="solar-system">
@@ -19,7 +25,9 @@
         </div>
     </div>
 
-    <aside id="info-panel" aria-live="polite"></aside>
+    <aside id="info-panel" aria-live="polite">
+        <p class="loading">Loading astronomy data…</p>
+    </aside>
 
     <div id="controls">
         <label for="time-speed">Time speed</label>
@@ -27,7 +35,11 @@
         <span id="speed-label">1 day/sec</span>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
-    <script src="script.js"></script>
+    <noscript>
+        <p style="color:#fff;padding:2rem;">JavaScript is required for real coordinate calculations.</p>
+    </noscript>
+
+    <script src="lib/astronomy.browser.min.js?v=2"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>
