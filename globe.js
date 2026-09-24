@@ -33,14 +33,24 @@
     scene.add(sunMesh);
 
     const sunGlow = new THREE.Mesh(
-      new THREE.SphereGeometry(SUN_RADIUS * 1.35, 32, 32),
+      new THREE.SphereGeometry(SUN_RADIUS * 2.2, 32, 32),
       new THREE.MeshBasicMaterial({
         color: 0xffaa00,
         transparent: true,
-        opacity: 0.18
+        opacity: 0.22
       })
     );
     scene.add(sunGlow);
+
+    const sunCorona = new THREE.Mesh(
+      new THREE.SphereGeometry(SUN_RADIUS * 3.5, 32, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0xff6600,
+        transparent: true,
+        opacity: 0.08
+      })
+    );
+    scene.add(sunCorona);
 
     const earthTexture = new THREE.TextureLoader().load('images/earth_globe.jpg');
     earthTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -92,10 +102,15 @@
     tiltRing.rotation.x = Math.PI / 2;
     earthMesh.add(tiltRing);
 
-    const cameraOffset = new THREE.Vector3(-90, 70, 130);
+    const sunPosition = new THREE.Vector3(0, 0, 0);
     const earthPosition = new THREE.Vector3();
+    const midpoint = new THREE.Vector3();
     const moonOffset = new THREE.Vector3();
     const northPole = new THREE.Vector3();
+    const lineDirection = new THREE.Vector3();
+    const sideDirection = new THREE.Vector3();
+    const worldUp = new THREE.Vector3(0, 1, 0);
+    const cameraDirection = new THREE.Vector3();
     const defaultUp = new THREE.Vector3(0, 1, 0);
     const baseOrientation = new THREE.Quaternion();
     const spinQuaternion = new THREE.Quaternion();
@@ -153,10 +168,29 @@
       );
       moonMesh.position.copy(earthPosition).add(moonOffset);
 
-      camera.position.copy(earthPosition).add(cameraOffset);
-      camera.lookAt(earthPosition);
+      midpoint.copy(earthPosition).multiplyScalar(0.5);
+      lineDirection.copy(earthPosition).normalize();
+      sideDirection.crossVectors(lineDirection, worldUp);
 
-      sunLight.position.set(0, 0, 0);
+      if (sideDirection.lengthSq() < 1e-6) {
+        sideDirection.set(0, 0, 1);
+      } else {
+        sideDirection.normalize();
+      }
+
+      const earthDistance = earthPosition.length();
+      const cameraSide = earthDistance * 0.72;
+      const cameraHeight = earthDistance * 0.28;
+
+      cameraDirection
+        .copy(sideDirection)
+        .multiplyScalar(cameraSide);
+      cameraDirection.y += cameraHeight;
+
+      camera.position.copy(midpoint).add(cameraDirection);
+      camera.lookAt(midpoint);
+
+      sunLight.position.copy(sunPosition);
     }
 
     function render() {
