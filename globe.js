@@ -128,8 +128,8 @@
     const worldUp = new THREE.Vector3(0, 1, 0);
     const cameraDirection = new THREE.Vector3();
     const defaultUp = new THREE.Vector3(0, 1, 0);
-    const baseOrientation = new THREE.Quaternion();
-    const spinQuaternion = new THREE.Quaternion();
+    const orientHelper = new THREE.Object3D();
+    const TEXTURE_LON_OFFSET = -Math.PI / 2;
     let cameraInitialized = false;
 
     const controls = new THREE.OrbitControls(camera, canvas);
@@ -187,7 +187,7 @@
       controls.update();
     }
 
-    function updateOrientation(earthAxis) {
+    function updateOrientation(earthAxis, earthPos) {
       const northEcliptic = Astronomy.Ecliptic(earthAxis.north);
       northPole.set(
         northEcliptic.vec.x,
@@ -195,19 +195,22 @@
         northEcliptic.vec.z
       ).normalize();
 
-      baseOrientation.setFromUnitVectors(defaultUp, northPole);
-
       const spinDeg = ((earthAxis.spin % 360) + 360) % 360;
-      spinQuaternion.setFromAxisAngle(defaultUp, THREE.MathUtils.degToRad(spinDeg));
+      const spinRad = THREE.MathUtils.degToRad(spinDeg);
 
-      earthMesh.quaternion.copy(baseOrientation).multiply(spinQuaternion);
+      orientHelper.position.copy(earthPos);
+      orientHelper.up.copy(northPole);
+      orientHelper.lookAt(sunPosition);
+      orientHelper.rotateOnAxis(northPole, spinRad + TEXTURE_LON_OFFSET);
+
+      earthMesh.quaternion.copy(orientHelper.quaternion);
     }
 
     function update(state) {
       earthPosition.copy(eclipticToScene(state.earthEcliptic.vec));
       earthMesh.position.copy(earthPosition);
 
-      updateOrientation(state.earthAxis);
+      updateOrientation(state.earthAxis, earthPosition);
 
       const moonLonRad = state.moon.lon * Math.PI / 180;
       moonOffset.set(

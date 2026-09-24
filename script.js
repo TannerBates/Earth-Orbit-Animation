@@ -45,6 +45,7 @@
 
   let simulationTime = new Date();
   let lastFrameTime = performance.now();
+  let isFirstFrame = true;
 
   const centralTimeFormatter = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Chicago',
@@ -127,6 +128,10 @@
     const earthAxis = Astronomy.RotationAxis(Astronomy.Body.Earth, simulationTime);
     const siderealHours = Astronomy.SiderealTime(simulationTime);
     const moon = Astronomy.EclipticGeoMoon(simulationTime);
+    const sunGeo = Astronomy.GeoVector(Astronomy.Body.Sun, simulationTime, true);
+    const sunEquator = Astronomy.EquatorFromVector(sunGeo);
+    let subsolarLon = siderealHours * 15 - sunEquator.ra * 15;
+    subsolarLon = ((subsolarLon % 360) + 360) % 360;
 
     const earthX = earthEcliptic.vec.x * AU_SCALE;
     const earthY = -earthEcliptic.vec.y * AU_SCALE;
@@ -137,6 +142,7 @@
     );
     const spinDeg = ((earthAxis.spin % 360) + 360) % 360;
     const axialTilt = computeAxialTilt(earthAxis);
+    const sunFacingDeg = (Math.atan2(earthY, earthX) * 180 / Math.PI + 180 + 360) % 360;
 
     return {
       earthVector: earthVector,
@@ -151,7 +157,10 @@
       distanceKm: distanceKm,
       orbitalSpeedKmS: orbitalSpeedKmS,
       spinDeg: spinDeg,
-      axialTilt: axialTilt
+      axialTilt: axialTilt,
+      subsolarLat: sunEquator.dec,
+      subsolarLon: subsolarLon,
+      sunFacingDeg: sunFacingDeg
     };
   }
 
@@ -168,6 +177,8 @@
       '<dt>Distance from Sun</dt><dd>' + formatNumber(state.distanceAu, 6) + ' AU (' + formatNumber(state.distanceKm / 1e6, 3) + ' million km)</dd>' +
       '<dt>Orbital speed</dt><dd>' + formatNumber(state.orbitalSpeedKmS, 3) + ' km/s</dd>' +
       '<dt>Axial tilt</dt><dd>' + formatNumber(state.axialTilt, 2) + '°</dd>' +
+      '<dt>Subsolar latitude</dt><dd>' + formatNumber(state.subsolarLat, 4) + '°</dd>' +
+      '<dt>Subsolar longitude</dt><dd>' + formatNumber(state.subsolarLon, 4) + '°</dd>' +
       '<dt>Earth axial spin (IAU W)</dt><dd>' + formatNumber(state.spinDeg, 4) + '°</dd>' +
       '<dt>Greenwich apparent sidereal time</dt><dd>' + formatNumber(state.siderealHours, 4) + ' h (' + formatNumber(state.siderealHours * 15, 4) + '°)</dd>' +
       '<dt>Moon geocentric ecliptic longitude</dt><dd>' + formatNumber(state.moon.lon, 4) + '°</dd>' +
@@ -183,7 +194,7 @@
 
     earthWrapEl.style.transform =
       'translate(calc(-50% + ' + state.earthX + 'px), calc(-50% + ' + state.earthY + 'px))';
-    earthEl.style.transform = 'rotate(' + state.spinDeg + 'deg)';
+    earthEl.style.transform = 'rotate(' + (state.spinDeg + state.sunFacingDeg) + 'deg)';
     moonEl.style.transform =
       'translate(calc(-50% + ' + moonX + 'px), calc(-50% + ' + moonY + 'px))';
   }
@@ -224,16 +235,24 @@
     }
   }
 
+  function syncToRealTime() {
+    simulationTime = new Date();
+    lastFrameTime = performance.now();
+  }
+
   function updateSimulation() {
     const now = performance.now();
-    const elapsedMs = now - lastFrameTime;
-    lastFrameTime = now;
-
     const speed = Number(timeSpeedInput.value);
 
-    if (speed === 1) {
+    if (isFirstFrame) {
+      syncToRealTime();
+      isFirstFrame = false;
+    } else if (speed === 1) {
       simulationTime = new Date();
+      lastFrameTime = now;
     } else {
+      const elapsedMs = Math.min(now - lastFrameTime, 1000);
+      lastFrameTime = now;
       simulationTime = new Date(simulationTime.getTime() + elapsedMs * speed);
     }
 
@@ -265,7 +284,11 @@
   }
 
   timeSpeedInput.addEventListener('input', function () {
-    speedLabelEl.textContent = speedToLabel(Number(timeSpeedInput.value));
+    const speed = Number(timeSpeedInput.value);
+    if (speed === 1) {
+      syncToRealTime();
+    }
+    speedLabelEl.textContent = speedToLabel(speed);
   });
 
   if (earthModelSelect) {
