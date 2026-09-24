@@ -19,6 +19,8 @@
   const timeSpeedInput = document.getElementById('time-speed');
   const speedLabelEl = document.getElementById('speed-label');
   const earthModelSelect = document.getElementById('earth-model');
+  const globeControlsEl = document.getElementById('globe-controls');
+  const resetViewBtn = document.getElementById('reset-view');
 
   let globeView = null;
   let currentModel = 'globe';
@@ -185,6 +187,10 @@
       globeCanvasEl.hidden = currentModel !== 'globe';
       globeCanvasEl.style.display = currentModel === 'globe' ? 'block' : 'none';
     }
+    if (globeControlsEl) {
+      globeControlsEl.hidden = currentModel !== 'globe';
+      globeControlsEl.style.display = currentModel === 'globe' ? 'flex' : 'none';
+    }
 
     if (currentModel === 'globe') {
       if (!globeView && globeCanvasEl && typeof window.EarthGlobeView === 'function') {
@@ -252,6 +258,14 @@
     setEarthModel(earthModelSelect.value);
   } else {
     setEarthModel('globe');
+  }
+
+  if (resetViewBtn) {
+    resetViewBtn.addEventListener('click', function () {
+      if (globeView && typeof globeView.resetView === 'function') {
+        globeView.resetView();
+      }
+    });
   }
 
   window.addEventListener('resize', onResize);

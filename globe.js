@@ -6,6 +6,10 @@
       throw new Error('Three.js failed to load.');
     }
 
+    if (typeof THREE.OrbitControls === 'undefined') {
+      throw new Error('OrbitControls failed to load.');
+    }
+
     const AU_SCALE = 280;
     const EARTH_RADIUS = 18;
     const MOON_RADIUS = 4;
@@ -13,7 +17,7 @@
     const SUN_RADIUS = 42;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 5000);
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 10000);
     const renderer = new THREE.WebGLRenderer({
       canvas: canvas,
       antialias: true,
@@ -126,6 +130,16 @@
     const defaultUp = new THREE.Vector3(0, 1, 0);
     const baseOrientation = new THREE.Quaternion();
     const spinQuaternion = new THREE.Quaternion();
+    let cameraInitialized = false;
+
+    const controls = new THREE.OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.minDistance = 35;
+    controls.maxDistance = 3000;
+    controls.zoomSpeed = 1.1;
 
     function eclipticToScene(eclipticVec) {
       return new THREE.Vector3(
@@ -148,6 +162,29 @@
         'position',
         new THREE.BufferAttribute(positions, 3)
       );
+    }
+
+    function setDefaultCamera() {
+      const earthDistance = earthPosition.length();
+      const cameraSide = earthDistance * 0.58;
+      const cameraHeight = earthDistance * 0.22;
+
+      lineDirection.copy(earthPosition).normalize();
+      sideDirection.crossVectors(lineDirection, worldUp);
+
+      if (sideDirection.lengthSq() < 1e-6) {
+        sideDirection.set(0, 0, 1);
+      } else {
+        sideDirection.normalize();
+      }
+
+      cameraDirection.copy(sideDirection).multiplyScalar(cameraSide);
+      cameraDirection.y += cameraHeight;
+
+      midpoint.copy(earthPosition).multiplyScalar(0.5);
+      camera.position.copy(midpoint).add(cameraDirection);
+      controls.target.copy(midpoint);
+      controls.update();
     }
 
     function updateOrientation(earthAxis) {
@@ -181,32 +218,20 @@
       moonMesh.position.copy(earthPosition).add(moonOffset);
 
       midpoint.copy(earthPosition).multiplyScalar(0.5);
-      lineDirection.copy(earthPosition).normalize();
-      sideDirection.crossVectors(lineDirection, worldUp);
 
-      if (sideDirection.lengthSq() < 1e-6) {
-        sideDirection.set(0, 0, 1);
-      } else {
-        sideDirection.normalize();
+      if (!cameraInitialized) {
+        setDefaultCamera();
+        cameraInitialized = true;
       }
 
-      const earthDistance = earthPosition.length();
-      const cameraSide = earthDistance * 0.58;
-      const cameraHeight = earthDistance * 0.22;
-
-      cameraDirection
-        .copy(sideDirection)
-        .multiplyScalar(cameraSide);
-      cameraDirection.y += cameraHeight;
-
-      camera.position.copy(midpoint).add(cameraDirection);
-      camera.lookAt(midpoint);
+      controls.target.copy(midpoint);
 
       sunLight.position.copy(sunPosition);
       sunCore.rotation.y += 0.00035;
     }
 
     function render() {
+      controls.update();
       renderer.render(scene, camera);
     }
 
@@ -221,7 +246,12 @@
       renderer.setSize(w, h, false);
     }
 
+    function resetView() {
+      setDefaultCamera();
+    }
+
     function dispose() {
+      controls.dispose();
       renderer.dispose();
       earthTexture.dispose();
       sunTexture.dispose();
@@ -234,6 +264,7 @@
       update: update,
       render: render,
       resize: resize,
+      resetView: resetView,
       setOrbitPath: setOrbitPath,
       dispose: dispose
     };

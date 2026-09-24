@@ -233,6 +233,29 @@ html, body {
     padding: 0.25rem 0.4rem;
 }
 
+#globe-controls {
+    flex-wrap: wrap;
+}
+
+#reset-view {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+    font-size: 0.8125rem;
+}
+
+#reset-view:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.control-hint {
+    color: #bdbdbd;
+    font-size: 0.75rem;
+}
+
 #time-speed {
     width: 10rem;
 }
