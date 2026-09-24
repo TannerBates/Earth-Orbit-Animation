@@ -6,7 +6,7 @@
 
   const AU_IN_KM = 149597870.7;
   const AU_SCALE = 280;
-  const MOON_DISPLAY_SCALE = 5000;
+  const MOON_ORBIT_RADIUS_PX = 60;
 
   const errorBannerEl = document.getElementById('error-banner');
   const earthWrapEl = document.getElementById('earth-wrap');
@@ -119,10 +119,8 @@
     );
 
     const moonLonRad = moon.lon * Math.PI / 180;
-    const moonLatRad = moon.lat * Math.PI / 180;
-    const moonDisplayRadius = moon.dist * AU_SCALE * MOON_DISPLAY_SCALE;
-    const moonX = moonDisplayRadius * Math.cos(moonLatRad) * Math.cos(moonLonRad);
-    const moonY = -moonDisplayRadius * Math.cos(moonLatRad) * Math.sin(moonLonRad);
+    const moonX = MOON_ORBIT_RADIUS_PX * Math.cos(moonLonRad);
+    const moonY = -MOON_ORBIT_RADIUS_PX * Math.sin(moonLonRad);
 
     const spinDeg = ((earthAxis.spin % 360) + 360) % 360;
 
@@ -145,7 +143,7 @@
       '<dt>Moon geocentric ecliptic longitude</dt><dd>' + formatNumber(moon.lon, 4) + '°</dd>' +
       '<dt>Moon distance</dt><dd>' + formatNumber(moon.dist * AU_IN_KM, 1) + ' km</dd>' +
       '</dl>' +
-      '<p class="note">Positions from Astronomy Engine (VSOP87 / IAU rotation models). Moon orbit is scaled up for visibility.</p>';
+      '<p class="note">Positions from Astronomy Engine (VSOP87 / IAU rotation models). Moon uses accurate orbital angle with a fixed display radius.</p>';
   }
 
   function frame() {
