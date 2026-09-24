@@ -46,8 +46,20 @@
   let simulationTime = new Date();
   let lastFrameTime = performance.now();
 
-  function formatUtc(date) {
-    return date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
+  const centralTimeFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZoneName: 'short'
+  });
+
+  function formatCentralTime(date) {
+    return centralTimeFormatter.format(date);
   }
 
   function formatNumber(value, digits) {
@@ -150,7 +162,7 @@
       '<h2>Earth–Sun System (v' + VERSION + ')</h2>' +
       '<dl>' +
       '<dt>Earth model</dt><dd>' + modelLabel + '</dd>' +
-      '<dt>Simulation time</dt><dd>' + formatUtc(simulationTime) + '</dd>' +
+      '<dt>Simulation time</dt><dd>' + formatCentralTime(simulationTime) + '</dd>' +
       '<dt>Heliocentric ecliptic longitude</dt><dd>' + formatNumber(state.earthEcliptic.elon, 4) + '°</dd>' +
       '<dt>Heliocentric ecliptic latitude</dt><dd>' + formatNumber(state.earthEcliptic.elat, 4) + '°</dd>' +
       '<dt>Distance from Sun</dt><dd>' + formatNumber(state.distanceAu, 6) + ' AU (' + formatNumber(state.distanceKm / 1e6, 3) + ' million km)</dd>' +
@@ -218,7 +230,12 @@
     lastFrameTime = now;
 
     const speed = Number(timeSpeedInput.value);
-    simulationTime = new Date(simulationTime.getTime() + elapsedMs * speed);
+
+    if (speed === 1) {
+      simulationTime = new Date();
+    } else {
+      simulationTime = new Date(simulationTime.getTime() + elapsedMs * speed);
+    }
 
     const state = computeState();
     updateInfoPanel(state);
