@@ -8,21 +8,24 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Earth Orbit — Real Coordinates</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body id="universe">
-    <div id="version-banner">Real coordinates mode — if you still see the old CSS-only animation, hard-refresh (Ctrl+Shift+R)</div>
+    <div id="version-banner">Real coordinates mode — hard-refresh (Ctrl+Shift+R) if the page looks outdated</div>
     <div id="error-banner" hidden></div>
 
     <div id="stars"></div>
 
     <div id="solar-system">
-        <svg id="orbit-path" aria-hidden="true"></svg>
-        <div id="sun"></div>
-        <div id="earth-wrap">
-            <img src="images/earth.png" alt="Earth" id="earth">
-            <div id="moon"></div>
+        <div id="view-classic" hidden>
+            <svg id="orbit-path" aria-hidden="true"></svg>
+            <div id="sun"></div>
+            <div id="earth-wrap">
+                <img src="images/earth.png" alt="Earth" id="earth">
+                <div id="moon"></div>
+            </div>
         </div>
+        <canvas id="globe-canvas"></canvas>
     </div>
 
     <aside id="info-panel" aria-live="polite">
@@ -30,16 +33,27 @@
     </aside>
 
     <div id="controls">
-        <label for="time-speed">Time speed</label>
-        <input type="range" id="time-speed" min="1" max="500000" step="1" value="86400">
-        <span id="speed-label">1 day/sec</span>
+        <div class="control-group">
+            <label for="earth-model">Earth model</label>
+            <select id="earth-model">
+                <option value="globe" selected>Globe (3D)</option>
+                <option value="classic">Classic (flat)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="time-speed">Time speed</label>
+            <input type="range" id="time-speed" min="1" max="500000" step="1" value="86400">
+            <span id="speed-label">1 day/sec</span>
+        </div>
     </div>
 
     <noscript>
         <p style="color:#fff;padding:2rem;">JavaScript is required for real coordinate calculations.</p>
     </noscript>
 
-    <script src="lib/astronomy.browser.min.js?v=3"></script>
-    <script src="script.js?v=3"></script>
+    <script src="lib/astronomy.browser.min.js?v=4"></script>
+    <script src="lib/three.min.js?v=4"></script>
+    <script src="globe.js?v=4"></script>
+    <script src="script.js?v=4"></script>
 </body>
 </html>
